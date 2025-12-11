@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodIQ - Partner Map</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .theme-transition { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        #map { height: 100%; width: 100%; z-index: 10; }
+        .leaflet-popup-content-wrapper { border-radius: 12px; padding: 0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .leaflet-popup-content { margin: 12px; font-family: 'Inter', sans-serif; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { emerald: '#10b981', dark: '#064e3b', light: '#d1fae5' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 min-h-screen relative flex flex-col">
+
+    <div class="fixed top-[-10%] right-[-5%] h-[500px] w-[500px] rounded-full bg-emerald-200/40 blur-[100px] -z-10"></div>
+    <div class="fixed bottom-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full bg-blue-200/40 blur-[120px] -z-10"></div>
+
+    <header class="flex items-center justify-between px-8 py-5 bg-white/80 backdrop-blur-md border-b border-slate-100 shrink-0 sticky top-0 z-50">
+        <div class="flex items-center gap-6">
+            <button onclick="history.back()" class="p-2 text-slate-500 hover:text-brand-emerald hover:bg-emerald-50 rounded-lg theme-transition" title="Go Back">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-r border-slate-200 pr-6">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-emerald text-white shadow-md shadow-emerald-200">
+                    <i data-lucide="map" class="w-6 h-6"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xl font-black text-slate-800 tracking-tight leading-none">FoodIQ</span>
+                    <span class="text-[10px] font-bold text-brand-emerald uppercase tracking-wider">Logistics Map</span>
+                </div>
+            </div>
+
+            <a href="surplus meter.html" class="flex items-center gap-2 px-4 py-2 border-l-4 border-brand-emerald bg-emerald-50/50 text-brand-emerald font-bold text-sm uppercase tracking-wide hover:bg-brand-emerald hover:text-white transition-all duration-300 rounded-r-lg group">
+                <i data-lucide="sparkles" class="w-4 h-4 group-hover:text-white transition-colors"></i>
+                Surplus meter  
+            </a>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="text-right hidden md:block">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Current Location</p>
+                <p class="text-sm font-bold text-slate-800" id="location-text">Detecting Location...</p>
+            </div>
+            <div class="h-10 w-10 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 animate-pulse" id="gps-status">
+                <i data-lucide="map-pin" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-[1400px] w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-1 flex flex-col h-[calc(100vh-140px)]">
+            <div class="mb-4">
+                <h1 class="text-2xl font-bold text-slate-800">Nearby Partners</h1>
+                <p class="text-sm text-slate-500">Sorted by distance from you.</p>
+            </div>
+            <div id="ngo-list" class="flex-1 overflow-y-auto pr-2 space-y-3 no-scrollbar">
+                </div>
+        </div>
+
+        <div class="lg:col-span-2 h-[500px] lg:h-[calc(100vh-140px)] bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">
+            <div id="map"></div>
+            <div class="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+                <button onclick="locateUser()" class="p-3 bg-white rounded-xl shadow-lg text-slate-600 hover:text-brand-emerald transition-colors" title="My Location">
+                    <i data-lucide="crosshair" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        // --- CONFIGURATION ---
+        let map;
+        let markers = {};
+        let userMarker = null;
+        let userLat = 18.8950;
+        let userLng = 73.1810;
+
+        const ngos = [
+            { id: 1, name: "Rasayani Community Kitchen", location: "Rasayani", lat: 18.8800, lng: 73.1850, needs: "Baked Goods" },
+            { id: 2, name: "Pillai Food Drive", location: "New Panvel", lat: 18.9902, lng: 73.1277, needs: "Fresh Produce" },
+            { id: 3, name: "Khana Ghar Foundation", location: "Panvel Station", lat: 18.9894, lng: 73.1175, needs: "Prepared Meals" },
+            { id: 4, name: "Navjeevan Bank", location: "Patalganga", lat: 18.9400, lng: 73.1450, needs: "Any Surplus" },
+            { id: 5, name: "Robin Hood Army", location: "Bandra West", lat: 19.0596, lng: 72.8295, needs: "Bulk Grains" },
+            { id: 6, name: "Feeding India", location: "Andheri East", lat: 19.1136, lng: 72.8697, needs: "Non-perishables" },
+        ];
+
+        function init() {
+            lucide.createIcons();
+            initMap();
+            locateUser();
+        }
+
+        function initMap() {
+            map = L.map('map', { zoomControl: false }).setView([userLat, userLng], 12);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+        }
+
+        function locateUser() {
+            const statusIcon = document.getElementById('gps-status');
+            const statusText = document.getElementById('location-text');
+
+            if (!navigator.geolocation) {
+                statusText.innerText = "GPS Not Supported";
+                renderListWithDistance(); 
+                return;
+            }
+
+            statusText.innerText = "Getting Address...";
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+                    
+                    statusIcon.classList.remove('animate-pulse');
+                    statusIcon.classList.add('text-brand-emerald', 'bg-emerald-50', 'border-emerald-200');
+
+                    updateUserMarker();
+                    fetchAddressName(userLat, userLng);
+                    renderListWithDistance();
+                    map.flyTo([userLat, userLng], 13, { animate: true, duration: 1.5 });
+                },
+                () => {
+                    statusText.innerText = "Rasayani (Default)";
+                    statusIcon.classList.remove('animate-pulse');
+                    statusIcon.classList.add('text-red-500');
+                    renderListWithDistance(); 
+                }
+            );
+        }
+
+        async function fetchAddressName(lat, lng) {
+            const statusText = document.getElementById('location-text');
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                const data = await response.json();
+                const addr = data.address;
+                const locationName = addr.city || addr.town || addr.village || addr.suburb || "Unknown Location";
+                const state = addr.state || "";
+                statusText.innerText = `${locationName}, ${state}`;
+            } catch (error) {
+                statusText.innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            }
+        }
+
+        function updateUserMarker() {
+            if (userMarker) map.removeLayer(userMarker);
+            const myIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color:#3b82f6; width:20px; height:20px; border-radius:50%; border:3px solid white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+            userMarker = L.marker([userLat, userLng], { icon: myIcon }).addTo(map)
+                .bindPopup('<div class="font-bold text-sm text-slate-800">You Are Here</div>')
+                .openPopup();
+        }
+
+        function renderListWithDistance() {
+            const container = document.getElementById('ngo-list');
+            for(let id in markers) { map.removeLayer(markers[id]); }
+
+            const ngosWithDist = ngos.map(ngo => {
+                const dist = calculateDistance(userLat, userLng, ngo.lat, ngo.lng);
+                return { ...ngo, distanceVal: dist, distanceStr: dist.toFixed(1) + " km" };
+            }).sort((a, b) => a.distanceVal - b.distanceVal);
+
+            container.innerHTML = ngosWithDist.map(ngo => `
+                <div onclick="focusMap(${ngo.id}, ${ngo.lat}, ${ngo.lng})" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-brand-emerald/30 cursor-pointer transition-all group">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-brand-emerald transition-colors">${ngo.name}</h3>
+                        <span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md">${ngo.distanceStr}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-500 mb-3">
+                        <i data-lucide="map-pin" class="w-3 h-3"></i> ${ngo.location}
+                    </div>
+                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+                        <span class="text-[10px] font-medium text-slate-400">Needs: <span class="text-slate-600">${ngo.needs}</span></span>
+                        <button class="text-brand-emerald hover:bg-emerald-50 p-1.5 rounded-full transition-colors">
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            ngosWithDist.forEach(ngo => {
+                const ngoIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+                const marker = L.marker([ngo.lat, ngo.lng], { icon: ngoIcon }).addTo(map)
+                    .bindPopup(`<div class="p-1"><h3 class="font-bold text-slate-800">${ngo.name}</h3><p class="text-xs text-slate-500 mb-2">${ngo.location} • ${ngo.distanceStr}</p><button class="w-full bg-brand-emerald text-white text-xs font-bold py-1 px-2 rounded hover:bg-green-600 transition">Contact</button></div>`);
+                markers[ngo.id] = marker;
+            });
+            lucide.createIcons();
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        window.focusMap = function(id, lat, lng) {
+            map.flyTo([lat, lng], 15, { animate: true, duration: 1.5 });
+            if(markers[id]) markers[id].openPopup();
+        }
+
+        init();
+    </script>
+</body>
+</html>

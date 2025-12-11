@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CanteenIQ - Sustainability Impact Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. DESIGN SYSTEM VARIABLES (MATCHING PREVIOUS PORTAL) --- */
+        :root {
+            --primary-orange: #FF6B00; 
+            --emerald-green: #10B981;  
+            --orange-light: #FFF7ED;   
+            --green-light: #ECFDF5;    
+            --text-dark: #1F2937;
+            --text-grey: #6B7280;
+            --bg-light: #F3F4F6;
+            --white: #FFFFFF;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --font-family: 'Inter', sans-serif;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); }
+        body { background-color: var(--bg-light); color: var(--text-dark); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* --- 2. LAYOUT --- */
+        .top-header {
+            background-color: var(--white); height: 70px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 100;
+        }
+        .header-left, .header-right { display: flex; align-items: center; gap: 20px; }
+        .brand-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-icon-box { background-color: var(--primary-orange); color: var(--white); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .brand-text { font-size: 22px; font-weight: 700; color: var(--text-dark); }
+        
+        .app-container { display: flex; flex: 1; overflow: hidden; }
+        
+        .sidebar { width: var(--sidebar-width); background-color: var(--white); border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; padding-top: 20px; }
+        .nav-item { padding: 14px 24px; font-weight: 600; color: var(--text-grey); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
+        .nav-item:hover { background-color: #f9fafb; }
+        .nav-item.active { background-color: var(--green-light); color: var(--emerald-green); border-left-color: var(--emerald-green); } /* Green Active state for Eco page */
+
+        .main-content { flex: 1; overflow-y: auto; padding: 30px; }
+
+        /* --- 3. HERO & METRICS --- */
+        .eco-hero {
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%); /* Green Gradient */
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Decorative circle */
+        .eco-hero::after {
+            content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;
+        }
+
+        .hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; position: relative; z-index: 1; }
+        .hero-title h1 { font-size: 28px; font-weight: 700; margin-bottom: 5px; }
+        .hero-title p { opacity: 0.9; font-size: 14px; }
+        
+        .metrics-grid { display: flex; gap: 30px; margin-top: 20px; position: relative; z-index: 1; }
+        .metric-item { background: rgba(255,255,255,0.2); padding: 15px 20px; border-radius: 12px; backdrop-filter: blur(5px); min-width: 140px; }
+        .metric-val { font-size: 24px; font-weight: 700; display: block; margin-bottom: 4px; }
+        .metric-lbl { font-size: 12px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- 4. CALCULATOR CARDS --- */
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; margin-top: 30px; }
+        .section-title { font-size: 18px; font-weight: 700; color: var(--text-dark); }
+
+        .impact-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+        }
+        
+        .impact-card {
+            background-color: var(--white); border-radius: 16px; padding: 24px; box-shadow: var(--card-shadow);
+            text-align: center; border-top: 4px solid var(--emerald-green);
+        }
+        
+        .impact-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+        .impact-num { font-size: 28px; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
+        .impact-desc { color: var(--text-grey); font-size: 13px; line-height: 1.5; }
+
+        /* --- 5. DETAILED LIST --- */
+        .detail-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--card-shadow); }
+        .detail-table th { background: #F9FAFB; text-align: left; padding: 15px 20px; font-size: 12px; color: var(--text-grey); text-transform: uppercase; font-weight: 600; }
+        .detail-table td { padding: 15px 20px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+        .detail-table tr:last-child td { border-bottom: none; }
+        
+        .co2-tag { background-color: var(--green-light); color: var(--emerald-green); padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 12px; }
+        
+        /* Explanation Box */
+        .science-box { background-color: var(--orange-light); border: 1px solid #FED7AA; border-radius: 12px; padding: 20px; margin-top: 30px; display: flex; gap: 15px; }
+        .science-icon { font-size: 24px; }
+        .science-content h4 { color: #9A3412; margin-bottom: 5px; font-size: 16px; }
+        .science-content p { color: #9A3412; font-size: 13px; opacity: 0.9; line-height: 1.5; }
+
+    </style>
+</head>
+<body>
+
+    <header class="top-header">
+        <div class="header-left">
+            <div style="font-size:24px; cursor:pointer;">☰</div>
+            <a href="#" class="brand-logo">
+                <div class="logo-icon-box">📊</div>
+                <span class="brand-text">CanteenIQ <span style="font-size:12px; font-weight:500; color:#666;">Partner</span></span>
+            </a>
+        </div>
+        <div class="header-right">
+            <div style="text-align:right;">
+                <span style="display:block; font-weight:700; font-size:16px;">Sagar Vihar Canteen</span>
+                <span style="font-size:12px; color:var(--text-grey);">ID: KH-8892</span>
+            </div>
+            <div style="position:relative; width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:#f9fafb; border-radius:50%;">
+                <!-- Green dot for Eco page -->
+                🔔 <span style="position:absolute; top:8px; right:8px; width:10px; height:10px; background:var(--emerald-green); border-radius:50%; border:2px solid #fff;"></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        
+        <aside class="sidebar">
+            <div class="nav-item">Overview</div>
+            <div class="nav-item">Smart Insights</div>
+            <div class="nav-item">Waste Log</div>
+            <div class="nav-item">Inventory Manager</div>
+            <div class="nav-item active">Eco-Impact Report</div> <!-- Active Tab -->
+        </aside>
+
+        <main class="main-content">
+            
+            <div class="eco-hero">
+                <div class="hero-top">
+                    <div class="hero-title">
+                        <h1>Your Environmental Impact</h1>
+                        <p>Total savings generated by your waste reduction efforts (Last 30 Days)</p>
+                    </div>
+                    <button style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; padding:8px 16px; border-radius:8px; cursor:pointer;">Download Certificate</button>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-val" id="total-waste-saved">0 kg</span>
+                        <span class="metric-lbl">Food Saved</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-val" id="total-co2">0 kg</span>
+                        <span class="metric-lbl">CO₂e Prevented</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-val" id="total-money">₹0</span>
+                        <span class="metric-lbl">Cost Saved</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header" style="margin-top:0;">
+                <h2 class="section-title">What does this mean?</h2>
+            </div>
+
+            <div class="impact-grid">
+                <!-- Visual Metaphor 1: Trees -->
+                <div class="impact-card">
+                    <span class="impact-icon">🌳</span>
+                    <div class="impact-num" id="tree-equiv">0</div>
+                    <div class="impact-desc">Equivalent to trees planted and grown for 10 years.</div>
+                </div>
+
+                <!-- Visual Metaphor 2: Car Travel -->
+                <div class="impact-card">
+                    <span class="impact-icon">🚗</span>
+                    <div class="impact-num" id="car-km">0 km</div>
+                    <div class="impact-desc">Equivalent to driving a standard petrol car for this distance.</div>
+                </div>
+
+                <!-- Visual Metaphor 3: Phone Charging -->
+                <div class="impact-card">
+                    <span class="impact-icon">⚡</span>
+                    <div class="impact-num" id="phone-charge">0</div>
+                    <div class="impact-desc">Number of smartphones that could be charged with this energy.</div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <h2 class="section-title">Savings Breakdown by Item</h2>
+                <button style="background:none; border:none; color:var(--emerald-green); font-weight:600; cursor:pointer;">View All ></button>
+            </div>
+
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Food Item</th>
+                        <th>Quantity Saved</th>
+                        <th>Category</th>
+                        <th>Emission Factor</th>
+                        <th>CO₂e Avoided</th>
+                    </tr>
+                </thead>
+                <tbody id="breakdown-table-body">
+                    <!-- Javascript will populate this -->
+                </tbody>
+            </table>
+
+            <!-- The Science Box -->
+            <div class="science-box">
+                <div class="science-icon">💡</div>
+                <div class="science-content">
+                    <h4>How we calculate this?</h4>
+                    <p>
+                        We use global standard emission factors (kg CO₂e per kg of food). 
+                        For example, saving 1kg of Rice prevents ~2.7kg of CO₂e emissions (farming, transport, and decomposition methane). 
+                        Meat has a higher factor (~27kg) while Vegetables are lower (~0.4kg).
+                    </p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // --- 1. MOCK DATA (Items saved from waste) ---
+        const savedItems = [
+            { name: "Rice (Cooked)", quantity: 45, unit: "kg", category: "Grains", factor: 2.7, cost_per_kg: 40 },
+            { name: "Chicken Curry", quantity: 12, unit: "kg", category: "Meat", factor: 6.9, cost_per_kg: 250 }, // Avg poultry factor
+            { name: "Mixed Vegetables", quantity: 30, unit: "kg", category: "Veg", factor: 0.5, cost_per_kg: 60 },
+            { name: "Paneer", quantity: 8, unit: "kg", category: "Dairy", factor: 5.8, cost_per_kg: 300 }
+        ];
+
+        // --- 2. CALCULATION LOGIC ---
+        function calculateImpact() {
+            let totalKg = 0;
+            let totalCO2 = 0;
+            let totalMoney = 0;
+            const tableBody = document.getElementById('breakdown-table-body');
+            let tableHtml = "";
+
+            savedItems.forEach(item => {
+                const itemCO2 = item.quantity * item.factor;
+                const itemMoney = item.quantity * item.cost_per_kg;
+                
+                totalKg += item.quantity;
+                totalCO2 += itemCO2;
+                totalMoney += itemMoney;
+
+                // Create Table Row
+                tableHtml += `
+                    <tr>
+                        <td><strong>${item.name}</strong></td>
+                        <td>${item.quantity} ${item.unit}</td>
+                        <td><span style="color:#666; font-size:12px; background:#eee; padding:2px 6px; border-radius:4px;">${item.category}</span></td>
+                        <td>${item.factor} kg CO₂/kg</td>
+                        <td><span class="co2-tag">-${itemCO2.toFixed(1)} kg</span></td>
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = tableHtml;
+
+            // --- 3. EQUIVALENCIES ---
+            // 1 Tree absorbs ~21kg CO2 per year (Source: various, simplified for UI)
+            const trees = totalCO2 / 21;
+            
+            // Avg Car emits ~0.192 kg CO2 per km (Source: EPA approx)
+            const carKm = totalCO2 / 0.192;
+
+            // 1 Smartphone charge = ~0.015 kg CO2 (very approx)
+            // Or better conversion: 1 kg CO2 = ~120 smartphones charged
+            const phones = totalCO2 * 120;
+
+            // --- 4. RENDER TO DOM ---
+            // Animate Numbers (Simple text update for now)
+            document.getElementById('total-waste-saved').innerText = totalKg.toFixed(1) + " kg";
+            document.getElementById('total-co2').innerText = totalCO2.toFixed(1) + " kg";
+            document.getElementById('total-money').innerText = "₹" + totalMoney.toLocaleString();
+
+            document.getElementById('tree-equiv').innerText = trees.toFixed(1);
+            document.getElementById('car-km').innerText = Math.round(carKm).toLocaleString() + " km";
+            document.getElementById('phone-charge').innerText = Math.round(phones).toLocaleString();
+        }
+
+        // Run on load
+        window.onload = calculateImpact;
+
+    </script>
+</body>
+</html>

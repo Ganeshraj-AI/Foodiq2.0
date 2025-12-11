@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodIQ - Command Center</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .card-anim { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .modal-anim { animation: fadeIn 0.2s ease-out forwards; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 
+                            green: '#10b981', 
+                            dark: '#064e3b', 
+                            light: '#d1fae5',
+                            hover: '#059669'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 overflow-hidden flex">
+
+    <div class="fixed top-[-20%] right-[-10%] h-[800px] w-[800px] rounded-full bg-emerald-200/30 blur-[120px] -z-10"></div>
+    <div class="fixed bottom-[-20%] left-[-10%] h-[900px] w-[900px] rounded-full bg-blue-200/30 blur-[140px] -z-10"></div>
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between z-20 shadow-xl shadow-slate-200/50">
+        <div>
+            <div class="p-8 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green text-white shadow-lg shadow-emerald-500/30">
+                    <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tighter leading-none">FoodIQ</h1>
+                    <span class="text-[10px] font-bold text-brand-green uppercase tracking-widest">Command</span>
+                </div>
+            </div>
+
+            <nav class="px-4 space-y-2 mt-4">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900 text-white shadow-lg shadow-slate-900/20 group transition-all hover:scale-[1.02]">
+                    <i data-lucide="layout-grid" class="w-5 h-5 group-hover:text-emerald-400 transition-colors"></i>
+                    <span class="font-bold text-sm">Live Feed</span>
+                </a>
+                 
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-100">
+            <button class="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <div class="h-8 w-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold">JD</div>
+                <div class="text-left">
+                    <p class="text-xs font-bold text-slate-900">John Doe</p>
+                    <p class="text-[10px] text-slate-400">NGO Admin</p>
+                </div>
+                <i data-lucide="settings" class="w-4 h-4 ml-auto text-slate-400"></i>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        
+        <header class="px-8 py-6 bg-white/60 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-10 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Live Wastage Feed</h2>
+                <p class="text-slate-500 text-sm">Real-time updates from partner institutions</p>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="flex bg-white rounded-full border border-slate-200 p-1 shadow-sm">
+                    <button onclick="filterFeed('all')" id="filter-all" class="px-6 py-2 rounded-full bg-slate-900 text-white text-xs font-bold shadow transition-all">All</button>
+                    <button onclick="filterFeed('veg')" id="filter-veg" class="px-6 py-2 rounded-full text-slate-600 text-xs font-bold hover:bg-slate-50 transition-all">Pure Veg</button>
+                    <button onclick="filterFeed('urgent')" id="filter-urgent" class="px-6 py-2 rounded-full text-slate-600 text-xs font-bold hover:bg-slate-50 transition-all flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Urgent</button>
+                </div>
+
+                <div class="h-8 w-px bg-slate-300"></div>
+
+                <button class="relative p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 transition-colors">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-white"></span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8" id="scroll-container">
+            <div id="feed-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                </div>
+        </div>
+        
+    </main>
+
+    <div id="claim-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg modal-anim overflow-hidden relative">
+            
+            <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 leading-tight" id="modal-title">Rice & Curry</h2>
+                    <p class="text-sm text-slate-500 font-medium" id="modal-college">Mithibai College Canteen</p>
+                </div>
+                <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <div class="px-4 py-2 bg-green-50 text-green-700 text-sm font-bold rounded-lg border border-green-100 flex items-center gap-2">
+                        <i data-lucide="package" class="w-4 h-4"></i>
+                        Quantity: <span id="modal-qty">15 kg</span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pickup Request</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
+                            <p class="text-xs text-slate-400 font-bold uppercase">Cooked At</p>
+                        </div>
+                        <p class="text-sm font-bold text-slate-800">Today, 2:30 PM</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="navigation" class="w-4 h-4 text-slate-400"></i>
+                            <p class="text-xs text-slate-400 font-bold uppercase">Distance</p>
+                        </div>
+                        <p class="text-sm font-bold text-slate-800">2.4 km (15 min)</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="flex-1 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="confirmClaim()" class="flex-[2] py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 group-hover:text-emerald-400 transition-colors"></i>
+                        Confirm & Dispatch
+                    </button>
+                </div>
+            </div>
+            
+            <div class="h-1.5 w-full bg-gradient-to-r from-emerald-400 to-blue-500"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA LAYER ---
+        const listings = [
+            { id: 1, college: "Mithibai College", item: "Rice & Dal Combo", qty: "12 kg", type: "veg", time: "25 min ago", distance: "1.2 km", urgent: true },
+            { id: 2, college: "NM College", item: "Veg Biryani", qty: "8 kg", type: "veg", time: "40 min ago", distance: "0.8 km", urgent: false },
+            { id: 3, college: "St. Xaviers", item: "Chicken Gravy", qty: "5 kg", type: "non-veg", time: "1 hr ago", distance: "5.4 km", urgent: true },
+            { id: 4, college: "DJ Sanghvi", item: "Rotis & Sabzi", qty: "200 units", type: "veg", time: "10 min ago", distance: "1.5 km", urgent: false },
+            { id: 5, college: "Jai Hind", item: "Sandwiches", qty: "15 packs", type: "veg", time: "2 hrs ago", distance: "8.2 km", urgent: false },
+            { id: 6, college: "HR College", item: "Fruit Salad", qty: "10 kg", type: "veg", time: "3 hrs ago", distance: "9.1 km", urgent: true },
+            { id: 7, college: "Ruia College", item: "Pav Bhaji", qty: "25 kg", type: "veg", time: "15 min ago", distance: "4.2 km", urgent: false },
+            { id: 8, college: "Wilson College", item: "Fish Curry", qty: "3 kg", type: "non-veg", time: "30 min ago", distance: "6.5 km", urgent: true },
+        ];
+
+        const feedContainer = document.getElementById('feed-container');
+        const modal = document.getElementById('claim-modal');
+
+        function init() {
+            lucide.createIcons();
+            renderFeed(listings);
+        }
+
+        function renderFeed(data) {
+            feedContainer.innerHTML = data.map((item, index) => {
+                const badgeColor = item.type === 'veg' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100';
+                const urgentClass = item.urgent ? 'ring-2 ring-red-500/10 border-red-200' : 'border-slate-100';
+                const urgentBadge = item.urgent ? 
+                    `<span class="absolute top-4 right-4 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md shadow-lg shadow-red-500/30 animate-pulse">Urgent</span>` : '';
+                
+                return `
+                <div class="card-anim bg-white p-6 rounded-2xl border ${urgentClass} shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all relative group h-full flex flex-col" style="animation-delay: ${index * 0.05}s">
+                    
+                    ${urgentBadge}
+
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-2.5 py-1 border ${badgeColor} text-[10px] font-bold uppercase tracking-wider rounded-md">${item.type}</span>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-slate-900 leading-tight mb-2 group-hover:text-brand-green transition-colors">${item.item}</h3>
+                        <p class="text-sm text-slate-500 font-medium flex items-center gap-1.5">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> ${item.college}
+                        </p>
+                    </div>
+
+                    <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Quantity</p>
+                            <span class="text-lg font-black text-slate-900">${item.qty}</span>
+                        </div>
+                        <button onclick="openClaim(${item.id})" class="h-9 px-4 bg-slate-900 text-white rounded-lg font-bold text-xs shadow-md hover:bg-brand-green active:scale-95 transition-all flex items-center gap-2">
+                            View <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+
+                    <div class="absolute bottom-2 right-12 text-[10px] font-medium text-slate-300 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="clock" class="w-3 h-3"></i> ${item.time}
+                    </div>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function filterFeed(type) {
+            // Reset Styles
+            ['all', 'veg', 'urgent'].forEach(t => {
+                const btn = document.getElementById(`filter-${t}`);
+                if(t === 'urgent') btn.className = "px-6 py-2 rounded-full text-slate-600 text-xs font-bold hover:bg-slate-50 transition-all flex items-center gap-1";
+                else btn.className = "px-6 py-2 rounded-full text-slate-600 text-xs font-bold hover:bg-slate-50 transition-all";
+            });
+
+            // Active Style
+            const activeBtn = document.getElementById(`filter-${type}`);
+            activeBtn.className = "px-6 py-2 rounded-full bg-slate-900 text-white text-xs font-bold shadow-lg shadow-slate-900/20 transition-all flex items-center gap-1";
+
+            // Logic
+            let filtered = listings;
+            if (type === 'veg') filtered = listings.filter(i => i.type === 'veg');
+            if (type === 'urgent') filtered = listings.filter(i => i.urgent);
+            
+            renderFeed(filtered);
+        }
+
+        let currentItem = null;
+
+        function openClaim(id) {
+            currentItem = listings.find(i => i.id === id);
+            document.getElementById('modal-title').innerText = currentItem.item;
+            document.getElementById('modal-college').innerText = currentItem.college;
+            document.getElementById('modal-qty').innerText = currentItem.qty;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function confirmClaim() {
+            const btn = document.querySelector('#claim-modal button.group');
+            const originalContent = btn.innerHTML;
+            
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processing...`;
+            btn.classList.add('bg-brand-green');
+            
+            setTimeout(() => {
+                closeModal();
+                // Alert logic removed for cleaner UX, using console for demo
+                console.log(`Dispatched: ${currentItem.item}`);
+                
+                // Reset button
+                btn.innerHTML = originalContent;
+                btn.classList.remove('bg-brand-green');
+                
+                // Remove item
+                const idx = listings.findIndex(i => i.id === currentItem.id);
+                if(idx > -1) {
+                    listings.splice(idx, 1);
+                    renderFeed(listings);
+                }
+            }, 1000);
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        init();
+    </script>
+</body>
+</html>

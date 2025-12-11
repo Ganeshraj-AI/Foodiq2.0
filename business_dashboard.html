@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>FoodIQ — Business Intelligence</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* FoodIQ Signature Theme */
+      --primary: #FF6B00;
+      --primary-hover: #e65e00;
+      --emerald: #10B981;
+      --emerald-bg: #ECFDF5;
+      --bg: #FFF5EC;
+      --card-bg: #ffffff;
+      --text: #111827;
+      --muted: #9CA3AF;
+      --border: #F3F4F6;
+      --radius: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 10px 30px -10px rgba(255, 107, 0, 0.1);
+    }
+
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 1280px; margin: auto; padding: 32px; }
+    
+    /* Header */
+    .header { background: white; padding: 20px 32px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-icon { width: 48px; height: 48px; background: var(--primary); border-radius: 14px; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3); }
+    .brand-text h1 { margin: 0; font-size: 22px; font-weight: 800; font-family: "Inter", sans-serif; tracking: -0.5px; }
+    .brand-text span { font-size: 13px; color: var(--muted); font-weight: 500; }
+    
+    /* Buttons */
+    .btn-group { display: flex; gap: 12px; }
+    button.btn { padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(255,107,0,0.2); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.7; cursor: wait; }
+    .btn-outline { background: white; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Hero KPI */
+    .hero-kpi { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 40px; box-shadow: var(--shadow-md); margin-bottom: 24px; text-align: center; position: relative; overflow: hidden; }
+    .hero-kpi::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(90deg, var(--primary), var(--emerald)); }
+    .hero-title { font-size: 14px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+    .hero-value { font-family: "Inter", sans-serif; font-size: 56px; font-weight: 900; color: var(--text); letter-spacing: -2px; }
+    
+    /* KPI Grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
+    .kpi-card { background: white; border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: transform 0.2s; }
+    .kpi-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+    .kpi-label { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .kpi-value { font-size: 28px; margin-top: 8px; font-weight: 800; font-family: "Inter"; }
+    .kpi-trend { font-size: 12px; margin-top: 8px; font-weight: 600; }
+    .trend-up { color: var(--emerald); }
+    
+    /* Charts */
+    .section-title { font-family: "Inter"; font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .chart-card { background: white; padding: 28px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 26px; height: 420px; display: flex; flex-direction: column; }
+    .chart-wrapper { flex: 1; position: relative; width: 100%; }
+    .two-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 28px; }
+    
+    /* Table */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 12px; }
+    th, td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { text-transform: uppercase; font-size: 11px; color: var(--muted); font-weight: 700; text-align: left; background: #f9fafb; }
+    tr:last-child td { border-bottom: none; }
+    
+    /* Customer Scroll */
+    .customer-scroll { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+    .customer-scroll::-webkit-scrollbar { display: none; }
+    .customer-card { min-width: 180px; background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: 0.2s; }
+    .customer-card:hover { border-color: var(--primary); transform: scale(1.02); }
+    .customer-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .customer-spend { margin-top: 6px; color: var(--emerald); font-weight: 700; font-size: 16px; }
+
+    /* Print Styles */
+    @media print {
+      body { background: white; }
+      .btn-group { display: none; }
+      .container { padding: 0; max-width: 100%; }
+      .header, .hero-kpi, .kpi-card, .chart-card { box-shadow: none; border: 1px solid #ddd; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">📊</div>
+      <div class="brand-text">
+        <h1>Business Intelligence</h1>
+        <span>Revenue & Profit Dashboard</span>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline" id="exportPdf" onclick="window.print()">
+        <span>Export PDF</span>
+      </button>
+      <button class="btn btn-primary" id="refreshBtn" onclick="loadStats()">
+        <span id="refreshIcon">↻</span> <span id="refreshText">Refresh Data</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="hero-kpi">
+    <div class="hero-title">Total Revenue (YTD)</div>
+    <div class="hero-value" id="heroRevenue">₹ --</div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card" style="border-left: 4px solid var(--emerald);">
+      <div class="kpi-label">Net Profit</div>
+      <div class="kpi-value" id="kpiProfit">--</div>
+      <div class="kpi-trend trend-up">↑ 12.5% vs last month</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+      <div class="kpi-label">Profit Margin</div>
+      <div class="kpi-value" id="kpiMargin">--%</div>
+      <div class="kpi-trend" style="color: var(--muted);">Stable</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #3B82F6;">
+      <div class="kpi-label">Avg Order Value</div>
+      <div class="kpi-value" id="kpiAov">--</div>
+      <div class="kpi-trend trend-up">↑ 5.2% vs last month</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="section-title">Revenue Growth Trend</div>
+    <div class="chart-wrapper">
+        <canvas id="chartRevenue"></canvas>
+    </div>
+  </div>
+
+  <div class="two-grid">
+    <div class="chart-card">
+      <div class="section-title">Financial Breakdown</div>
+      <div class="chart-wrapper">
+        <canvas id="chartProfit"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="section-title">Sales by Category (Pie)</div>
+      <div class="chart-wrapper" style="padding: 20px;">
+        <canvas id="chartCategory"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="height: auto;">
+    <div class="section-title">Top Performing Items</div>
+    <table id="productTable">
+      <thead>
+        <tr><th>Product</th><th>Revenue</th><th>Profit</th><th>Margin</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="chart-card" style="height: auto; background: transparent; border: none; box-shadow: none; padding: 0;">
+    <div class="section-title">Top Corporate Clients</div>
+    <div class="customer-scroll" id="customerScroll"></div>
+  </div>
+</div>
+
+<script>
+// --- Global Chart Instances ---
+let revenueChartInstance = null;
+let profitChartInstance = null;
+let categoryChartInstance = null;
+
+// --- Data Generator (Simulates Live FoodIQ Backend) ---
+function generateRandomData() {
+    // Base values tailored to a busy canteen context
+    const baseRevenue = 420000;
+    const variation = Math.floor(Math.random() * 50000) - 25000; // +/- 25k
+    const totalRev = baseRevenue + variation;
+    
+    // Profit roughly 22-25%
+    const margin = (22 + Math.random() * 3).toFixed(2);
+    const profit = (totalRev * (margin / 100));
+    
+    return {
+        total_revenue: totalRev,
+        net_profit: profit,
+        profit_margin: margin,
+        avg_order_value: 140 + Math.random() * 15,
+        total_expenses: totalRev - profit,
+        
+        // Weekly Trend
+        period_values: Array.from({length: 7}, () => 50000 + Math.random() * 30000),
+        
+        // Category Split (Lunch is usually highest in canteens)
+        revenue_by_category: {
+            "Lunch": Math.floor(totalRev * 0.5),
+            "Dinner": Math.floor(totalRev * 0.35),
+            "Breakfast": Math.floor(totalRev * 0.15)
+        },
+        
+        top_products: [
+            { name: "Chicken Biryani", revenue: 85000 + Math.random()*5000, profit: 25500, margin: 30 },
+            { name: "Veg Thali", revenue: 62000 + Math.random()*4000, profit: 15500, margin: 25 },
+            { name: "Vada Pav", revenue: 18500 + Math.random()*2000, profit: 9250, margin: 50 },
+            { name: "Masala Dosa", revenue: 24000 + Math.random()*3000, profit: 8400, margin: 35 },
+            { name: "Schezwan Rice", revenue: 32000 + Math.random()*3000, profit: 9600, margin: 30 }
+        ],
+        
+        top_customers: [
+            { name: "Admin Block", spend: 12500 + Math.random()*2000 },
+            { name: "Boys Hostel A", spend: 8900 + Math.random()*1000 },
+            { name: "Girls Hostel B", spend: 9200 + Math.random()*1000 },
+            { name: "Staff Room", spend: 15200 + Math.random()*3000 },
+            { name: "Guest House", spend: 6700 + Math.random()*1000 }
+        ]
+    };
+}
+
+async function loadStats() {
+  const btn = document.getElementById("refreshBtn");
+  const icon = document.getElementById("refreshIcon");
+  const text = document.getElementById("refreshText");
+  
+  // Loading State
+  btn.disabled = true;
+  icon.style.display = "inline-block";
+  icon.innerHTML = "⌛"; // Simple spinner placeholder
+  text.innerText = "Syncing...";
+
+  try {
+    // Simulate network latency
+    await new Promise(r => setTimeout(r, 800));
+    
+    const data = generateRandomData();
+
+    // --- DOM UPDATES ---
+    animateValue(document.getElementById("heroRevenue"), data.total_revenue, "₹ ");
+    animateValue(document.getElementById("kpiProfit"), data.net_profit, "₹ ");
+    document.getElementById("kpiMargin").innerText = Number(data.profit_margin).toFixed(2) + "%";
+    document.getElementById("kpiAov").innerText = "₹ " + Number(data.avg_order_value).toFixed(2);
+
+    // --- 1. REVENUE CHART (Enhanced Gradient) ---
+    const ctxRevenue = document.getElementById("chartRevenue").getContext('2d');
+    const gradient = ctxRevenue.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(255, 107, 0, 0.2)'); // Brand Orange
+    gradient.addColorStop(1, 'rgba(255, 107, 0, 0.0)');
+
+    if (revenueChartInstance) revenueChartInstance.destroy();
+    
+    revenueChartInstance = new Chart(ctxRevenue, {
+      type: "line",
+      data: {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [{
+          label: "Revenue",
+          data: data.period_values,
+          borderColor: "#FF6B00",
+          backgroundColor: gradient,
+          borderWidth: 3,
+          tension: 0.4, // Smooth curves
+          fill: true,
+          pointBackgroundColor: "#ffffff",
+          pointBorderColor: "#FF6B00",
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8
+        }]
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#111827',
+                padding: 12,
+                titleFont: { family: 'Inter', size: 13 },
+                bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
+                displayColors: false,
+                callbacks: {
+                    label: (context) => 'Revenue: ₹ ' + context.parsed.y.toLocaleString('en-IN')
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#f3f4f6', borderDash: [5, 5] },
+                ticks: {
+                    font: { family: 'Inter', size: 11 },
+                    color: '#9ca3af',
+                    callback: (value) => '₹' + value / 1000 + 'k'
+                }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Inter', size: 12 }, color: '#6b7280' }
+            }
+        }
+      }
+    });
+
+    // --- 2. PROFIT CHART (Clean Bar) ---
+    const ctxProfit = document.getElementById("chartProfit");
+    if (profitChartInstance) profitChartInstance.destroy();
+    profitChartInstance = new Chart(ctxProfit, {
+      type: "bar",
+      data: {
+        labels: ["Revenue","Expenses","Net Profit"],
+        datasets: [{ 
+          data: [data.total_revenue, data.total_expenses, data.net_profit],
+          backgroundColor: ["#FF6B00","#E5E7EB","#10B981"], 
+          borderRadius: 8,
+          barPercentage: 0.5
+        }]
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { display: false }, x: { grid: { display: false } } }
+      }
+    });
+
+    // --- 3. CATEGORY CHART (PIE CHART - AS REQUESTED) ---
+    const ctxCategory = document.getElementById("chartCategory");
+    if (categoryChartInstance) categoryChartInstance.destroy();
+    categoryChartInstance = new Chart(ctxCategory, {
+      type: "pie",
+      data: {
+        labels: Object.keys(data.revenue_by_category),
+        datasets: [{ 
+            data: Object.values(data.revenue_by_category), 
+            backgroundColor: ["#FF6B00","#10B981","#1F2937"], // Orange, Emerald, Black
+            borderWidth: 0,
+            hoverOffset: 10
+        }]
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'right', labels: { font: { family: 'Inter', size: 12 }, boxWidth: 10, usePointStyle: true } }
+        }
+      }
+    });
+
+    // --- 4. TABLE POPULATION ---
+    const tbody = document.querySelector("#productTable tbody");
+    tbody.innerHTML = "";
+    data.top_products.forEach(item => {
+      const tr = `<tr>
+        <td style="font-weight:600; color:#111827;">${item.name}</td>
+        <td>₹ ${Math.floor(item.revenue).toLocaleString('en-IN')}</td>
+        <td style="color:#10B981; font-weight:700;">₹ ${Math.floor(item.profit).toLocaleString('en-IN')}</td>
+        <td><span style="background:#ECFDF5; color:#059669; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800;">${Number(item.margin).toFixed(1)}%</span></td>
+      </tr>`;
+      tbody.insertAdjacentHTML("beforeend", tr);
+    });
+
+    // --- 5. CUSTOMER SCROLL ---
+    const scroll = document.getElementById("customerScroll");
+    scroll.innerHTML = "";
+    data.top_customers.forEach(c => {
+      scroll.insertAdjacentHTML("beforeend", `
+        <div class="customer-card">
+            <div class="customer-name">${c.name}</div>
+            <div class="customer-spend">₹ ${Math.floor(c.spend).toLocaleString('en-IN')}</div>
+        </div>
+      `);
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading data.");
+  } finally {
+    // Reset Loading State
+    btn.disabled = false;
+    icon.innerHTML = "↻";
+    text.innerText = "Refresh";
+  }
+}
+
+// Utility: Number Counter Animation
+function animateValue(obj, end, prefix = "") {
+    let startTimestamp = null;
+    const duration = 1000;
+    const start = 0;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        obj.innerHTML = prefix + value.toLocaleString('en-IN');
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+// Initial Load
+loadStats();
+</script>
+</body>
+</html>
